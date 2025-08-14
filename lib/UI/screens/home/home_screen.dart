@@ -1,3 +1,4 @@
+import 'package:ecomm_app/UI/common/home_carousel.dart';
 import 'package:ecomm_app/UI/screens/home/widgets/home_screen_helper_widgets.dart';
 import 'package:ecomm_app/main.dart';
 import 'package:flutter/material.dart';
@@ -35,11 +36,18 @@ class _HomeScreenState extends State<HomeScreen> {
                 _scaffoldKey.currentState?.openDrawer();
               },
             ),
+            const SizedBox(height: 25),
+            Expanded(child: CustomCarouselFB2()),
             const Spacer(),
             BottomNavBarFb3(),
           ],
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
   }
 }

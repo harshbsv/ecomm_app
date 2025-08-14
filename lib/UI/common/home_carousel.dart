@@ -1,151 +1,171 @@
+import 'package:ecomm_app/main.dart';
 import 'package:flutter/material.dart';
 
 class CustomCarouselFB2 extends StatefulWidget {
   const CustomCarouselFB2({super.key});
 
   @override
-  _CustomCarouselFB2State createState() => _CustomCarouselFB2State();
+  State<CustomCarouselFB2> createState() => _CustomCarouselFB2State();
 }
 
 class _CustomCarouselFB2State extends State<CustomCarouselFB2> {
-  // - - - - - - - - - - - - Instructions - - - - - - - - - - - - - -
-  // 1.Replace cards list with whatever widgets you'd like.
-  // 2.Change the widgetMargin attribute, to ensure good spacing on all screensize.
-  // 3.If you have a problem with this widget, please contact us at flutterbricks90@gmail.com
-  // Learn to build this widget at https://www.youtube.com/watch?v=dSMw1Nb0QVg!
-  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-  List<Widget> cards = [
-    CardFb1(
-      text: "Explore",
-      imageUrl:
-          "https://firebasestorage.googleapis.com/v0/b/flutterbricks-public.appspot.com/o/illustrations%2Fundraw_Working_late_re_0c3y%201.png?alt=media&token=7b880917-2390-4043-88e5-5d58a9d70555",
-      subtitle: "+30 books",
-      onPressed: () {},
-    ),
-    CardFb1(
-      text: "Explore",
-      imageUrl:
-          "https://firebasestorage.googleapis.com/v0/b/flutterbricks-public.appspot.com/o/illustrations%2Fundraw_Designer_re_5v95%201.png?alt=media&token=5d053bd8-d0ea-4635-abb6-52d87539b7ec",
-      subtitle: "+30 books",
-      onPressed: () {},
-    ),
-    CardFb1(
-      text: "Explore",
-      imageUrl:
-          "https://firebasestorage.googleapis.com/v0/b/flutterbricks-public.appspot.com/o/illustrations%2Fundraw_Accept_terms_re_lj38%201.png?alt=media&token=476b97fd-ba66-4f62-94a7-bce4be794f36",
-      subtitle: "+30 books",
-      onPressed: () {},
-    ),
-  ];
-
-  final double carouselItemMargin = 20;
-
-  late PageController _pageController;
-  int _position = 0;
+  List<dynamic> products = [];
+  bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _pageController = PageController(initialPage: 0, viewportFraction: 1.0);
+    fetchProducts();
+  }
+
+  Future<void> fetchProducts() async {
+    final response = await supabase.from('products').select();
+    setState(() {
+      products = response;
+      isLoading = false;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return PageView.builder(
-      padEnds: false,
-      controller: _pageController,
-      itemCount: cards.length,
-      pageSnapping: true,
-      onPageChanged: (int position) {
-        setState(() {
-          _position = position;
-        });
-      },
-      itemBuilder: (BuildContext context, int position) {
-        return Padding(
-          padding: EdgeInsets.symmetric(horizontal: carouselItemMargin / 2),
-          child: cards[position],
-        );
-      },
-    );
-  }
-
-  Widget imageSlider(int position) {
-    return AnimatedBuilder(
-      animation: _pageController,
-      builder: (BuildContext context, widget) {
-        return Container(
-          margin: EdgeInsets.all(carouselItemMargin),
-          child: Center(child: widget),
-        );
-      },
-      child: Container(child: cards[position]),
-    );
-  }
-}
-
-class CardFb1 extends StatelessWidget {
-  final String text;
-  final String imageUrl;
-  final String subtitle;
-  final Function() onPressed;
-
-  const CardFb1({
-    required this.text,
-    required this.imageUrl,
-    required this.subtitle,
-    required this.onPressed,
-    super.key,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    // double cardWidth = MediaQuery.of(context).size.width - 16;
-    return GestureDetector(
-      onTap: onPressed,
-      child: SizedBox(
-        width: 300,
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 30.0),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12.5),
-            boxShadow: [
-              BoxShadow(
-                offset: const Offset(10, 20),
-                blurRadius: 10,
-                spreadRadius: 0,
-                color: Colors.grey.withValues(alpha: .05),
+    if (isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (products.isEmpty) {
+      return const Center(child: Text('No products found.'));
+    }
+    return SizedBox(
+      height: 340, // Increased height to prevent overflows
+      child: PageView.builder(
+        itemCount: products.length,
+        controller: PageController(viewportFraction: 0.85),
+        itemBuilder: (context, index) {
+          final product = products[index];
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 8.0),
+            child: Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(24),
               ),
-            ],
-          ),
-          child: Column(
-            children: [
-              Image.network(imageUrl, height: 60, fit: BoxFit.cover),
-              const Spacer(),
-              Text(
-                text,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
+              elevation: 8,
+              shadowColor: Colors.black26,
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(24),
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.white,
+                      Theme.of(context).colorScheme.primary.withOpacity(0.08),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      if (product['product_image'] != null &&
+                          product['product_image'].toString().isNotEmpty)
+                        Container(
+                          constraints: const BoxConstraints(
+                            maxHeight: 120,
+                            minHeight: 80,
+                            minWidth: 80,
+                            maxWidth: double.infinity,
+                          ),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(18),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black12,
+                                blurRadius: 8,
+                                offset: Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(18),
+                            child: AspectRatio(
+                              aspectRatio:
+                                  1.5, // You can adjust this ratio or make it dynamic
+                              child: Image.network(
+                                product['product_image'],
+                                fit: BoxFit
+                                    .contain, // <-- fits image according to its dimensions
+                                errorBuilder: (context, error, stackTrace) =>
+                                    Container(
+                                      color: Colors.grey[200],
+                                      child: const Icon(
+                                        Icons.broken_image,
+                                        size: 48,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                loadingBuilder: (context, child, progress) {
+                                  if (progress == null) return child;
+                                  return Center(
+                                    child: CircularProgressIndicator(
+                                      value: progress.expectedTotalBytes != null
+                                          ? progress.cumulativeBytesLoaded /
+                                                (progress.expectedTotalBytes ??
+                                                    1)
+                                          : null,
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+                        ),
+                      const SizedBox(height: 16),
+                      Text(
+                        product['product_name'] ?? 'No Name',
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.5,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        product['product_description'] ?? '',
+                        style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
+                      ),
+                      const Spacer(),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primary,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          'Rs. ${product['product_price'] ?? 'N/A'}',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                    ],
+                  ),
                 ),
               ),
-              const SizedBox(height: 5),
-              Text(
-                subtitle,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: Colors.grey,
-                  fontWeight: FontWeight.normal,
-                  fontSize: 14,
-                ),
-              ),
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       ),
     );
   }
